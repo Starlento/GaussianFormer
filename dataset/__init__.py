@@ -5,6 +5,7 @@ OPENOCC_TRANSFORMS = Registry('openocc_transforms')
 
 from .dataset import NuScenesDataset
 from .transform_3d import *
+from .bev_label import LoadBEVLabelSurroundOcc
 from .sampler import CustomDistributedSampler
 from .utils import custom_collate_fn_temporal
 
@@ -13,10 +14,10 @@ from torch.utils.data.dataloader import DataLoader
 
 
 def get_dataloader(
-    train_dataset_config, 
-    val_dataset_config, 
-    train_loader, 
-    val_loader, 
+    train_dataset_config,
+    val_dataset_config,
+    train_loader,
+    val_loader,
     dist=False,
     iter_resume=False,
     train_sampler_config=dict(
@@ -30,7 +31,7 @@ def get_dataloader(
     if val_only:
         val_wrapper = OPENOCC_DATASET.build(
             val_dataset_config)
-                
+
         val_sampler = None
         if dist:
             val_sampler = DistributedSampler(val_wrapper, **val_sampler_config)
@@ -50,7 +51,7 @@ def get_dataloader(
         train_dataset_config)
     val_wrapper = OPENOCC_DATASET.build(
         val_dataset_config)
-        
+
     train_sampler = val_sampler = None
     if dist:
         if iter_resume:

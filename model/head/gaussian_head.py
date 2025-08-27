@@ -144,6 +144,62 @@ class GaussianHead(BaseTaskHead):
         prediction = []
         bin_logits = []
         density = []
+
+        if 'bev_label' in metas:
+            occ_xyz = metas['occ_xyz'].to(self.zero_tensor.device)
+            bev_xyz = metas['bev_xyz'].to(self.zero_tensor.device)
+            bev_label = metas['bev_label'].to(self.zero_tensor.device)
+            bev_cam_mask = metas['bev_cam_mask'].to(self.zero_tensor.device)
+
+            bs, H, W, Z, _ = occ_xyz.shape
+            sampled_xyz = occ_xyz.reshape(bs, -1, 3)
+
+            for idx in apply_loss_layers:
+                gaussians = representation[idx]['gaussian']
+                means, origi_opa, opacities, scales, CovInv = self.prepare_gaussian_args(gaussians)
+                _, g = means.shape[:2]
+
+                semantics = self.aggregator(
+                    sampled_xyz.clone().float(),
+                    means,
+                    origi_opa.reshape(bs, g),
+                    opacities,
+                    scales,
+                    CovInv)
+                if self.use_localaggprob:
+                    if self.combine_geosem:
+                        sem = semantics[0][:, :-1] * semantics[1].unsqueeze(-1)
+                        geo = 1 - semantics[1].unsqueeze(-1)
+                        geosem = torch.cat([sem, geo], dim=-1)
+                    else:
+                        geosem = semantics[0]
+                    geosem = geosem.view(bs, -1, H, W, Z).max(dim=-1).values
+                    prediction.append(geosem.view(bs, -1, H * W).transpose(1, 2))
+                    bin_logits.append(semantics[1].view(bs, H, W, Z).max(dim=-1).values.view(bs, -1))
+                    density.append(semantics[2].view(bs, H, W, Z).max(dim=-1).values.view(bs, -1))
+                else:
+                    sem = semantics.view(bs, -1, H, W, Z).max(dim=-1).values
+                    prediction.append(sem.view(bs, -1, H * W).transpose(1, 2))
+
+            final_prediction = prediction[-1].argmax(dim=1).view(bs, H, W)
+            sampled_label = bev_label.flatten(1)
+            sampled_xyz_out = bev_xyz.view(bs, -1, 3)
+            occ_cam_mask = bev_cam_mask
+
+            result = {
+                'pred_bev': prediction,
+                'bin_logits': bin_logits,
+                'density': density,
+                'sampled_label': sampled_label,
+                'sampled_xyz': sampled_xyz_out,
+                'occ_mask': occ_cam_mask,
+                'final_bev': final_prediction,
+                'final_occ': final_prediction,
+                'gaussian': representation[-1]['gaussian'],
+                'gaussians': [r['gaussian'] for r in representation]
+            }
+            return result
+
         occ_xyz = metas['occ_xyz'].to(self.zero_tensor.device)
         occ_label = metas['occ_label'].to(self.zero_tensor.device)
         occ_cam_mask = metas['occ_cam_mask'].to(self.zero_tensor.device)
@@ -155,8 +211,8 @@ class GaussianHead(BaseTaskHead):
             bs, g = means.shape[:2]
 
             semantics = self.aggregator(
-                sampled_xyz.clone().float(), 
-                means, 
+                sampled_xyz.clone().float(),
+                means,
                 origi_opa.reshape(bs, g),
                 opacities,
                 scales,
@@ -168,13 +224,13 @@ class GaussianHead(BaseTaskHead):
                     geosem = torch.cat([sem, geo], dim=-1)
                 else:
                     geosem = semantics[0]
-                    
+
                 prediction.append(geosem[None].transpose(1, 2))
                 bin_logits.append(semantics[1][None])
                 density.append(semantics[2][None])
             else:
                 prediction.append(semantics[None].transpose(1, 2))
-        
+
         if self.use_localaggprob and not self.combine_geosem:
             threshold = kwargs.get("sigmoid_thresh", 0.5)
             final_semantics = prediction[-1].argmax(dim=1)
@@ -183,7 +239,7 @@ class GaussianHead(BaseTaskHead):
             final_prediction[final_occupancy] = final_semantics[final_occupancy]
         else:
             final_prediction = prediction[-1].argmax(dim=1)
-        
+
         return {
             'pred_occ': prediction,
             'bin_logits': bin_logits,
