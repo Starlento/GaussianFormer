@@ -1,0 +1,45 @@
+[project]
+name = "gaussianformer"
+version = "0.1.0"
+requires-python = ">=3.8,<3.9"
+description = "GaussianFormer: 3D Occupancy Prediction with 3D Gaussian"
+
+dependencies = [
+    "torch==2.0.0",
+    "torchvision==0.15.1",
+    "torchaudio==2.0.1",
+    "openmim",
+    "mmcv==2.0.1",
+    "mmdet==3.0.0",
+    "mmsegmentation==1.0.0",
+    "mmdet3d==1.1.1",
+    "spconv-cu117",
+    "timm",
+    "matplotlib==3.7.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pip",
+    "ninja",
+    "black",
+    "jupyter",
+    "nvitop",
+]
+
+viz = [
+    "pyvirtualdisplay",
+    "mayavi",
+    "PyQt5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = []
+bypass-selection = true
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cu118"
