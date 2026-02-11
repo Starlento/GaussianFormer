@@ -1,7 +1,7 @@
 _base_ = [
-    '../_base_/misc.py',
-    '../_base_/model.py',
-    '../_base_/surroundocc.py'
+    '_base_/misc.py',
+    '_base_/model.py',
+    '_base_/surroundocc.py'
 ]
 
 # =========== data config ==============

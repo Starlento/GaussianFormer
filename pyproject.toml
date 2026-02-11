@@ -1,7 +1,7 @@
 [project]
 name = "gaussianformer"
 version = "0.1.0"
-requires-python = ">=3.8,<3.9"
+requires-python = ">=3.8,<3.11"
 description = "GaussianFormer: 3D Occupancy Prediction with 3D Gaussian"
 
 dependencies = [
@@ -16,6 +16,8 @@ dependencies = [
     "spconv-cu117",
     "timm",
     "matplotlib==3.7.2",
+    "einops",
+    "jaxtyping",
 ]
 
 [project.optional-dependencies]
@@ -43,3 +45,10 @@ bypass-selection = true
 
 [[tool.uv.index]]
 url = "https://download.pytorch.org/whl/cu118"
+
+[tool.uv.sources]
+mmcv = [
+  { url = "https://download.openmmlab.com/mmcv/dist/cu118/torch2.0.0/mmcv-2.0.1-cp38-cp38-manylinux1_x86_64.whl", marker = "python_full_version == '3.8.*'" },
+  { url = "https://download.openmmlab.com/mmcv/dist/cu118/torch2.0.0/mmcv-2.0.1-cp39-cp39-manylinux1_x86_64.whl", marker = "python_full_version == '3.9.*'" },
+  { url = "https://download.openmmlab.com/mmcv/dist/cu118/torch2.0.0/mmcv-2.0.1-cp310-cp310-manylinux1_x86_64.whl", marker = "python_full_version == '3.10.*'" },
+]
