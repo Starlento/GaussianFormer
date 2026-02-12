@@ -1,0 +1,7 @@
+[build-system]
+requires = ["setuptools", "wheel", "torch==2.0.0", "packaging", "ninja"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "local-aggregate-prob-fast"
+version = "0.1.0"

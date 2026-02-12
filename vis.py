@@ -30,7 +30,7 @@ from pyquaternion import Quaternion
 from mpl_toolkits.axes_grid1 import ImageGrid
 import os
 
-from model.utils.safe_ops import safe_sigmoid
+from gaussianformer.utils.safe_ops import safe_sigmoid
 
 
 def get_grid_coords(dims, resolution):

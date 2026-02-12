@@ -67,7 +67,7 @@ def main(local_rank, args):
     logger.info(f'Config:\n{cfg.pretty_text}')
 
     # build model
-    import model
+    import gaussianformer
     from dataset import get_dataloader
     from loss import OPENOCC_LOSS
 

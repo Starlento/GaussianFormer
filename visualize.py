@@ -60,7 +60,7 @@ def main(local_rank, args):
     logger.info(f'Config:\n{cfg.pretty_text}')
 
     # build model
-    import model
+    import gaussianformer
     from dataset import get_dataloader
 
     my_model = build_segmentor(cfg.model)
